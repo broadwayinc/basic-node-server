@@ -13,7 +13,7 @@ const getContentType = (() => {
                 reject(err);
             }
             else {
-                resolve(data);
+                resolve(JSON.parse(data));
             }
         });
     })
