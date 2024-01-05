@@ -6,12 +6,12 @@ If no path is given, it will serve the index.html file.
 
 ## How to use
 ```
-npm run sns [port]
+npm run bns [port]
 ```
 
 The [port] argument is optional. If no port is given, it will default to 3000.
 
 For example, if you want to serve the current directory on port 8080, you would run:
 ```
-npm run sns 8080
+npm run bns 8080
 ```
