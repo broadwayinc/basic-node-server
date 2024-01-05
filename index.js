@@ -44,7 +44,7 @@ const server = http.createServer((req, res) => {
             // Read the file and send it as the response
             const fileExtension = path.extname(filePath).substring(1);
             getContentType.then(contentType => {
-                contentType[fileExtension] || 'application/octet-stream';
+                contentType = contentType[fileExtension] || 'application/octet-stream';
 
                 res.setHeader('Content-Type', contentType);
 
