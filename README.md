@@ -1,4 +1,4 @@
-# simple-node-server
+# basic-node-server
 Simple node server for everyone.
 
 Simple node server hosts and serves files from the current directory through HTTP.
