@@ -1,7 +1,7 @@
 # simple-node-server
 Simple node server for everyone.
 
-Simple node server hosts and serves files from the current directory.
+Simple node server hosts and serves files from the current directory through HTTP.
 If no path is given, it will serve the index.html file.
 
 ## How to use

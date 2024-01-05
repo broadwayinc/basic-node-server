@@ -1,10 +1,10 @@
 {
-  "name": "simple-node-server",
+  "name": "basic-node-server",
   "version": "1.0.0",
   "description": "Simple node server for everyone",
   "main": "index.js",
   "scripts": {
-    "sns": "node index.js"
+    "bns": "node index.js"
   },
   "author": "Baksa Gimm",
   "license": "MIT"
