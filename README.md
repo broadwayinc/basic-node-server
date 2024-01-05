@@ -15,3 +15,17 @@ For example, if you want to serve the current directory on port 8080, you would 
 ```
 npm run bns 8080
 ```
+
+## NPM
+This package is also available on NPM. To install it, run:
+
+```
+npm install basic-node-server
+
+```
+
+Then, to run it, run from your project directory:
+
+```
+node node_modules/basic-node-server/index.js [port]
+```
