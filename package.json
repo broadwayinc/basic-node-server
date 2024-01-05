@@ -1,0 +1,11 @@
+{
+  "name": "simple-node-server",
+  "version": "1.0.0",
+  "description": "Simple node server for everyone",
+  "main": "index.js",
+  "scripts": {
+    "server": "node index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
