@@ -27,7 +27,7 @@ const getContentType = (() => {
 
 const server = http.createServer((req, res) => {
     // Extract the file path from the request URL
-    let filePath = path.join(__dirname, req.url);
+    let filePath = path.join(process.cwd(), req.url);
 
     // If filePath is empty or ends with '/', default to 'index.html'
     if (!filePath || filePath.endsWith('/')) {

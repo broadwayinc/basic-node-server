@@ -4,8 +4,8 @@
   "description": "Simple node server for everyone",
   "main": "index.js",
   "scripts": {
-    "server": "node index.js"
+    "sns": "node index.js"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Baksa Gimm",
+  "license": "MIT"
 }
