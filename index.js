@@ -4,22 +4,16 @@ const path = require('path');
 
 const port = process.argv[2] || 3000; // Set the port from the command line argument or default to 3000
 
-const csvFilePath = path.join(__dirname, '/application.csv');
+const mimeJson = path.join(__dirname, '/mime.json');
 
 const getContentType = (() => {
     return new Promise((resolve, reject) => {
-        fs.readFile(csvFilePath, 'utf8', (err, csvData) => {
+        fs.readFile(mimeJson, 'utf8', (err, data) => {
             if (err) {
                 reject(err);
-            } else {
-                const contentTypeMap = csvData.split('\n')
-                    .map(row => row.split(','))
-                    .reduce((map, [extension, contentType]) => {
-                        map[extension] = contentType;
-                        return map;
-                    }, {});
-
-                resolve(contentTypeMap);
+            }
+            else {
+                resolve(data);
             }
         });
     })
