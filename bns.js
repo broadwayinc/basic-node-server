@@ -23,6 +23,9 @@ const server = http.createServer((req, res) => {
     // Extract the file path from the request URL
     let filePath = path.join(process.cwd(), req.url);
 
+    // remove get query string
+    filePath = filePath.split('?')[0];
+
     // If filePath is empty or ends with '/', default to 'index.html'
     if (!filePath || filePath.endsWith('/')) {
         filePath = path.join(filePath, 'index.html');
