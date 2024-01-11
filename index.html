@@ -1,1 +1,35 @@
-<h1>Simple node server</h1>
+<!DOCTYPE html>
+
+<h1>Basic Node Server</h1>
+
+<p>
+    Basic node server for everyone.
+    <br>
+    Basic node server simply hosts and serves files from the current project directory through HTTP.
+    <br>
+    If no path is given, it will serve the index.html file.
+</p>
+
+<h2>How to use</h2>
+<pre>
+    node bns [port]
+</pre>
+<p>
+    The [port] argument is optional. If no port is given, it will default to 3000.
+    <br>
+    For example, if you want to serve the current directory on port 8080, you would run:
+</p>
+<pre>
+    node bns 8080
+</pre>
+
+<h2>NPM</h2>
+<pre>
+    npm install basic-node-server
+</pre>
+<p>
+    Then, you can run it from your project directory:
+</p>
+<pre>
+    node node_modules/basic-node-server/bns [port]
+</pre>

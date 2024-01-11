@@ -1,10 +1,10 @@
 {
   "name": "basic-node-server",
-  "version": "1.0.4",
-  "description": "Simple node server for everyone.",
-  "main": "index.js",
+  "version": "1.0.5",
+  "description": "Basic node server for everyone.",
+  "main": "bns.js",
   "scripts": {
-    "bns": "node index.js"
+    "start": "node bns"
   },
   "repository": {
     "type": "git",
