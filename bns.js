@@ -35,7 +35,7 @@ const server = http.createServer((req, res) => {
     filePath = filePath.split('?')[0];
 
     // If filePath is empty or ends with '/', default to 'index.html'
-    if (!filePath || filePath.endsWith('/')) {
+    if (!filePath || filePath.endsWith('/') || filePath.endsWith('\\')) {
         filePath = path.join(filePath, 'index.html');
     }
 
