@@ -24,5 +24,5 @@ The [port] argument is optional. If no port is given, it will default to 3000.
 For example, if you want to serve the current directory on port 8080, you would run:
 
 ```
-node bns 8080
+npx bns 8080
 ```
