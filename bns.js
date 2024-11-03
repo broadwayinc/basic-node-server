@@ -25,6 +25,12 @@ const server = http.createServer((req, res) => {
     // Extract the file path from the request URL
     let filePath = path.join(process.cwd(), req.url);
 
+    // check if its a get request
+    if (req.method !== 'GET') {
+        res.statusCode = 405;
+        res.end('Method not allowed');
+    }
+
     // remove get query string
     filePath = filePath.split('?')[0];
 
