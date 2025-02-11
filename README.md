@@ -2,7 +2,7 @@
 Basic node server for everyone.
 
 Basic node server simply hosts and serves files from the current project directory through HTTP.
-If no path is given, it will serve the index.html file in the root directory.
+If no path is given, or if the path ends with '/' or '\', it will serve the index.html file in the directory.
 
 ## Installation
 
