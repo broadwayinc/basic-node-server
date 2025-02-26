@@ -12,7 +12,7 @@
 
 <h2>How to use</h2>
 <pre>
-    node bns [port]
+node bns [port] [404 file]
 </pre>
 <p>
     The [port] argument is optional. If no port is given, it will default to 3000.
@@ -20,16 +20,23 @@
     For example, if you want to serve the current directory on port 8080, you would run:
 </p>
 <pre>
-    node bns 8080
+node bns 8080
 </pre>
-
+<p>
+    The [404 file] argument is optional. If file location is given, it will respond the file on 404.
+    <br>
+    For example, if you want your 404 page to be 404.html on port 8080, you would run:
+</p>
+<pre>
+node bns 8080 404.html
+</pre>
 <h2>NPM</h2>
 <pre>
-    npm install basic-node-server
+npm install basic-node-server
 </pre>
 <p>
     Then, you can run it from your project directory:
 </p>
 <pre>
-    node node_modules/basic-node-server/bns [port]
+npx bns [port] [404 file]
 </pre>
