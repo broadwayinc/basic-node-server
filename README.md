@@ -8,7 +8,6 @@ If no path is given, or if the path ends with '/' or '\', it will serve the inde
 
 ```
 npm install basic-node-server
-
 ```
 
 ## Usage
@@ -16,7 +15,7 @@ npm install basic-node-server
 Then, you can run it from your project directory:
 
 ```
-npx bns [port]
+npx bns [port] [404.page]
 ```
 
 The [port] argument is optional. If no port is given, it will default to 3000.
@@ -25,4 +24,10 @@ For example, if you want to serve the current directory on port 8080, you would 
 
 ```
 npx bns 8080
+```
+
+If you need to setup additional 404 page you can do so by:
+
+```
+npx bns 8080 your404page.html
 ```
