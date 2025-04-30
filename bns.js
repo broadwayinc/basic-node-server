@@ -28,6 +28,10 @@ for (let i = 2; i < process.argv.length; i++) {
     else if (process.argv[i] === 'no-cache=true') {
         noCache = true;
     }
+    // else if it's a file name
+    else if (process.argv[i].endsWith('.html') || process.argv[i].endsWith('.htm') || process.argv[i].endsWith('.txt')) {
+        notFoundFile = process.argv[i];
+    }
 }
 
 const mimeJson = path.join(__dirname, '/mime.json');
