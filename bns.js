@@ -4,8 +4,32 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const port = process.argv[2] || 3000; // Set the port from the command line argument or default to 3000
-const notFoundFile = process.argv?.[3] || null;
+let port = process.argv[2] || 3000; // Set the port from the command line argument or default to 3000
+try{
+    port = parseInt(port);
+    if (isNaN(port) || port < 1 || port > 65535) {
+        console.log('Invalid port number. Falling back to default port 3000.');
+        port = 3000;
+    }
+}
+catch (error) {
+    console.log('Invalid port number. Falling back to default port 3000.');
+    port = 3000;
+}
+
+let notFoundFile = null;
+let noCache = false;
+
+// loop through the arguments from index 3
+for (let i = 2; i < process.argv.length; i++) {
+    if (process.argv[i].startsWith('404=')) {
+        notFoundFile = notFoundFile.split('=').slice(1).join('=');
+    }
+    else if (process.argv[i] === 'no-cache=true') {
+        noCache = true;
+    }
+}
+
 const mimeJson = path.join(__dirname, '/mime.json');
 
 const getContentType = (() => {
@@ -20,6 +44,13 @@ const getContentType = (() => {
         });
     })
 })();
+
+function setNoCache(res) {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    return res;
+}
 
 const server = http.createServer((req, res) => {
     // Extract the file path from the request URL
@@ -94,6 +125,10 @@ const server = http.createServer((req, res) => {
                     } else {
                         // Send the file contents as the response
                         res.statusCode = 200;
+                        // set no-cache header if noCache is true
+                        if (noCache) {
+                            setNoCache(res);
+                        }
                         res.end(data);
                     }
                 });
@@ -104,4 +139,11 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    console.log(`404 file: ${notFoundFile}`);
+    console.log(`No cache: ${noCache}`);
+    console.log(`Serving files from: ${process.cwd()}`);
+    console.log(`Use Ctrl+C to stop the server`);
+    console.log(`Use 'bns.js <port> 404=<file>' to set a custom 404 file`);
+    console.log(`Use 'bns.js <port> no-cache=true' to set no-cache headers`);
+    console.log(`Use 'bns.js <port> 404=<file> no-cache=true' to set a custom 404 file and no-cache headers`);
 });

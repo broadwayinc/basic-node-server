@@ -15,7 +15,7 @@ npm install basic-node-server
 Then, you can run it from your project directory:
 
 ```
-npx bns [port] [404.page]
+npx bns [port] 404=[404.page]
 ```
 
 The [port] argument is optional. If no port is given, it will default to 3000.
@@ -29,5 +29,11 @@ npx bns 8080
 If you need to setup additional 404 page you can do so by:
 
 ```
-npx bns 8080 your404page.html
+npx bns 8080 404=your404page.html
+```
+
+If you need to set response header to have no-caching settings:
+
+```
+npx bns 8080 404=your404page.html no-cache=true
 ```
