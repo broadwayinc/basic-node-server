@@ -1,6 +1,6 @@
 {
   "name": "basic-node-server",
-  "version": "1.0.14",
+  "version": "1.0.16",
   "description": "Basic node server for everyone.",
   "main": "bns.js",
   "scripts": {

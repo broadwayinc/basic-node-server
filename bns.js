@@ -50,9 +50,9 @@ const getContentType = (() => {
 })();
 
 function setNoCache(res) {
-    res.setNoCache('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setNoCache('Pragma', 'no-cache');
-    res.setNoCache('Expires', '0');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     return res;
 }
 
