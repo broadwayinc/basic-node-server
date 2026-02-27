@@ -50,13 +50,13 @@ npx bns
 npx bns port=8080
 
 # Use a custom 404 page
-npx bns port=8080 404=404.html
+npx bns port=8080 404=notfound.html
 
 # Disable caching headers
 npx bns no-cache=true port=8080
 
 # Custom 404 + no-cache
-npx bns 404=404.html no-cache=true port=8080
+npx bns 404=notfound.html no-cache=true port=8080
 ```
 
 ## Request Behavior
