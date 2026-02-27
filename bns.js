@@ -3,151 +3,236 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const rootDir = process.cwd();
+const contentTypes = require('./mime.json');
 
-let port = process.argv[2] || 3000; // Set the port from the command line argument or default to 3000
-try{
-    port = parseInt(port);
-    if (isNaN(port) || port < 1 || port > 65535) {
-        console.log('Invalid port number. Falling back to default port 3000.');
-        port = 3000;
-    }
-}
-catch (error) {
-    console.log('Invalid port number. Falling back to default port 3000.');
-    port = 3000;
+const args = process.argv.slice(2);
+
+function printHelp() {
+    console.log('Basic Node Server');
+    console.log('Usage:');
+    console.log('- npx bns [port=<number>] [404=<file>] [no-cache=true]');
+    console.log('');
+    console.log('Options:');
+    console.log('- port=<number>: Optional port number (1-65535), defaults to 3000');
+    console.log('- 404=<file>: Optional custom 404 file path (inside current directory)');
+    console.log('- no-cache=true: Optional no-cache response headers');
+    console.log('- -h, --help: Show this help and exit');
+    console.log('');
+    console.log('Examples:');
+    console.log('- npx bns');
+    console.log('- npx bns port=8080');
+    console.log('- npx bns 404=notfound.html port=8080');
+    console.log('- npx bns no-cache=true port=8080');
+    console.log('- npx bns 404=notfound.html no-cache=true port=8080');
 }
 
+if (args.includes('-h') || args.includes('--help')) {
+    printHelp();
+    process.exit(0);
+}
+
+let port = 3000;
 let notFoundFile = null;
 let noCache = false;
 
-// loop through the arguments from index 3
-for (let i = 2; i < process.argv.length; i++) {
-    if (process.argv[i].startsWith('404=')) {
-        notFoundFile = notFoundFile.split('=').slice(1).join('=');
-    }
-    else if (process.argv[i] === 'no-cache=true') {
+for (const arg of args) {
+    if (arg.startsWith('port=')) {
+        const rawPort = arg.slice(5);
+        const parsedPort = parseInt(rawPort, 10);
+        if (/^\d+$/.test(rawPort) && parsedPort >= 1 && parsedPort <= 65535) {
+            port = parsedPort;
+        } else {
+            console.log('Invalid port value in port=<number>. Falling back to default port 3000.');
+            port = 3000;
+        }
+    } else if (arg.startsWith('404=')) {
+        notFoundFile = arg.slice(4);
+    } else if (arg === 'no-cache=true') {
         noCache = true;
-    }
-    // else if it's a file name
-    else if (process.argv[i].endsWith('.html') || process.argv[i].endsWith('.htm') || process.argv[i].endsWith('.txt')) {
-        notFoundFile = process.argv[i];
+    } else if (arg === 'no-cache=false') {
+        noCache = false;
+    } else if (arg.endsWith('.html') || arg.endsWith('.htm') || arg.endsWith('.txt')) {
+        notFoundFile = arg;
     }
 }
 
-const mimeJson = path.join(__dirname, '/mime.json');
+function isWithinRoot(targetPath) {
+    const relativePath = path.relative(rootDir, targetPath);
+    return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
 
-const getContentType = (() => {
-    return new Promise((resolve, reject) => {
-        fs.readFile(mimeJson, 'utf8', (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                resolve(JSON.parse(data));
-            }
-        });
-    })
-})();
+function resolveLocalPath(inputPath) {
+    const resolvedPath = path.resolve(rootDir, inputPath);
+    if (!isWithinRoot(resolvedPath)) {
+        return null;
+    }
+    return resolvedPath;
+}
+
+let notFoundFilePath = null;
+if (notFoundFile) {
+    notFoundFilePath = resolveLocalPath(notFoundFile);
+    if (!notFoundFilePath) {
+        console.log('Invalid 404 file path (outside current directory). Ignoring custom 404 file.');
+        notFoundFile = null;
+    }
+}
 
 function setNoCache(res) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    return res;
 }
 
-const server = http.createServer((req, res) => {
-    // Extract the file path from the request URL
-    let filePath = path.join(process.cwd(), req.url);
+function setDefaultCache(res) {
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+}
 
-    // check if its a get request
-    if (req.method !== 'GET') {
-        res.statusCode = 405;
-        res.end('Method not allowed');
+function buildEtag(stat) {
+    return `W/"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+}
+
+function setCacheValidators(res, stat) {
+    res.setHeader('ETag', buildEtag(stat));
+    res.setHeader('Last-Modified', stat.mtime.toUTCString());
+    if (!noCache) {
+        setDefaultCache(res);
     }
+}
 
-    // remove get query string
-    filePath = filePath.split('?')[0];
+function shouldReturnNotModified(req, stat) {
+    const ifNoneMatch = req.headers['if-none-match'];
+    const etag = buildEtag(stat);
 
-    // If filePath is empty or ends with '/', default to 'index.html'
-    if (!filePath || filePath.endsWith('/') || filePath.endsWith('\\')) {
-        filePath = path.join(filePath, 'index.html');
-    }
-
-    // Check if the file exists
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-        if (err) {
-            // File not found
-            if (notFoundFile) {
-                filePath = path.join(process.cwd(), notFoundFile);
-                fs.access(filePath, fs.constants.F_OK, (err) => {
-                    if (err) {
-                        res.statusCode = 404;
-                        res.end('File not found');
-                    } else {
-                        // Read the file and send it as the response
-                        const fileExtension = path.extname(filePath).substring(1);
-                        getContentType.then(contentType => {
-                            console.log(`Serving: ${filePath}`);
-
-                            contentType = contentType[fileExtension] || 'application/octet-stream';
-                            res.setHeader('Content-Type', contentType);
-
-                            fs.readFile(filePath, (err, data) => {
-                                if (err) {
-                                    // Error reading the file
-                                    res.statusCode = 500;
-                                    res.end('Internal server error');
-                                } else {
-                                    // Send the file contents as the response
-                                    res.statusCode = 200;
-                                    res.end(data);
-                                }
-                            });
-                        });
-                    }
-                });
-            }
-            else {
-                res.statusCode = 404;
-                res.end('File not found');
-            }
-        } else {
-            // Read the file and send it as the response
-            const fileExtension = path.extname(filePath).substring(1);
-            getContentType.then(contentType => {
-                console.log(`Serving: ${filePath}`);
-
-                contentType = contentType[fileExtension] || 'application/octet-stream';
-                res.setHeader('Content-Type', contentType);
-
-                fs.readFile(filePath, (err, data) => {
-                    if (err) {
-                        // Error reading the file
-                        res.statusCode = 500;
-                        res.end('Internal server error');
-                    } else {
-                        // Send the file contents as the response
-                        res.statusCode = 200;
-                        // set no-cache header if noCache is true
-                        if (noCache) {
-                            setNoCache(res);
-                        }
-                        res.end(data);
-                    }
-                });
-            });
+    if (ifNoneMatch) {
+        const candidates = ifNoneMatch
+            .split(',')
+            .map(value => value.trim());
+        if (candidates.includes('*') || candidates.includes(etag)) {
+            return true;
         }
-    });
+    }
+
+    const ifModifiedSince = req.headers['if-modified-since'];
+    if (!ifModifiedSince) {
+        return false;
+    }
+
+    const modifiedSince = Date.parse(ifModifiedSince);
+    if (Number.isNaN(modifiedSince)) {
+        return false;
+    }
+
+    return Math.floor(stat.mtimeMs / 1000) * 1000 <= modifiedSince;
+}
+
+function sendResponse(res, statusCode, contentType, body, isHead) {
+    res.statusCode = statusCode;
+    if (contentType) {
+        res.setHeader('Content-Type', contentType);
+    }
+    if (noCache) {
+        setNoCache(res);
+    }
+    if (isHead) {
+        res.end();
+        return;
+    }
+    res.end(body);
+}
+
+function getContentType(filePath) {
+    const extension = path.extname(filePath).substring(1).toLowerCase();
+    return contentTypes[extension] || 'application/octet-stream';
+}
+
+function resolveRequestPath(requestUrl) {
+    const rawPath = requestUrl.split('?')[0] || '/';
+    let decodedPath;
+
+    try {
+        decodedPath = decodeURIComponent(rawPath);
+    } catch (error) {
+        return null;
+    }
+
+    let normalizedPath = decodedPath;
+    if (normalizedPath.endsWith('/') || normalizedPath.endsWith('\\')) {
+        normalizedPath = `${normalizedPath}index.html`;
+    }
+
+    return resolveLocalPath(`.${normalizedPath}`);
+}
+
+async function serveFile(req, res, filePath, statusCode, isHead) {
+    const stat = await fs.promises.stat(filePath);
+    if (!stat.isFile()) {
+        const error = new Error('Not a file');
+        error.code = 'ENOENT';
+        throw error;
+    }
+
+    const contentType = getContentType(filePath);
+    setCacheValidators(res, stat);
+
+    if (shouldReturnNotModified(req, stat)) {
+        sendResponse(res, 304, contentType, null, true);
+        return;
+    }
+
+    const data = isHead ? null : await fs.promises.readFile(filePath);
+    sendResponse(res, statusCode, contentType, data, isHead);
+}
+
+const server = http.createServer(async (req, res) => {
+    const isHead = req.method === 'HEAD';
+    if (req.method !== 'GET' && !isHead) {
+        res.setHeader('Allow', 'GET, HEAD');
+        sendResponse(res, 405, 'text/plain; charset=utf-8', 'Method not allowed', false);
+        return;
+    }
+
+    const requestFilePath = resolveRequestPath(req.url);
+    if (!requestFilePath) {
+        sendResponse(res, 400, 'text/plain; charset=utf-8', 'Bad request', isHead);
+        return;
+    }
+
+    try {
+        console.log(`Serving: ${requestFilePath}`);
+        await serveFile(req, res, requestFilePath, 200, isHead);
+    } catch (error) {
+        if (error.code === 'ENOENT' || error.code === 'EISDIR') {
+            if (notFoundFilePath) {
+                try {
+                    console.log(`Serving 404 file: ${notFoundFilePath}`);
+                    await serveFile(req, res, notFoundFilePath, 404, isHead);
+                    return;
+                } catch (notFoundError) {
+                    // Fallback below if custom 404 file can't be read.
+                }
+            }
+            sendResponse(res, 404, 'text/plain; charset=utf-8', 'File not found', isHead);
+            return;
+        }
+
+        sendResponse(res, 500, 'text/plain; charset=utf-8', 'Internal server error', isHead);
+    }
 });
 
 server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`404 file: ${notFoundFile}`);
-    console.log(`No cache: ${noCache}`);
-    console.log(`Serving files from: ${process.cwd()}`);
-    console.log(`Use Ctrl+C to stop the server`);
-    console.log(`Use 'bns.js <port> 404=<file>' to set a custom 404 file`);
-    console.log(`Use 'bns.js <port> no-cache=true' to set no-cache headers`);
-    console.log(`Use 'bns.js <port> 404=<file> no-cache=true' to set a custom 404 file and no-cache headers`);
+    console.log('Basic Node Server is running');
+    console.log(`- Port: ${port}`);
+    console.log(`- Root: ${rootDir}`);
+    console.log(`- Custom 404: ${notFoundFile || 'none'}`);
+    console.log(`- No-cache headers: ${noCache}`);
+    console.log('');
+    console.log('Quick commands:');
+    console.log('- Stop server: Ctrl+C');
+    console.log('- Help: npx bns --help');
+    console.log('- Set port: npx bns port=8080');
+    console.log('- Custom 404: npx bns port=8080 404=notfound.html');
+    console.log('- Disable caching: npx bns port=8080 no-cache=true');
+    console.log('- Custom 404 + no-cache: npx bns port=8080 404=notfound.html no-cache=true');
 });
