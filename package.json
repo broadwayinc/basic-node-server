@@ -1,7 +1,7 @@
 {
   "name": "basic-node-server",
   "version": "1.1.0",
-  "description": "Basic node server for everyone.",
+  "description": "Basic node file server for everyone.",
   "main": "bns.js",
   "scripts": {
     "start": "node bns.js"
