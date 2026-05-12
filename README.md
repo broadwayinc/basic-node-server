@@ -2,10 +2,10 @@
 
 A small static file server for local hosting and quick testing.
 
-It serves files from your current working directory over HTTP.
+It serves files from your current working directory (or a configured root) over HTTP.
 
 - If the request path is `/` (or ends with `/`), it serves `index.html`.
-- It only serves files inside the current directory.
+- It only serves files inside the configured root directory.
 - It supports conditional caching via `ETag` and `Last-Modified` (`304 Not Modified`).
 
 ## Installation
@@ -25,7 +25,7 @@ Default port is `3000`.
 ## Usage
 
 ```bash
-npx bns [port=<number>] [404=<file>] [no-cache=true]
+npx bns [port=<number>] [root=<dir>] [404=<file>] [no-cache=true]
 ```
 
 Show CLI help:
@@ -37,7 +37,8 @@ npx bns --help
 ## Options
 
 - `port=<number>`: Optional port number (`1-65535`), defaults to `3000`.
-- `404=<file>`: Optional custom 404 page (must be inside current directory).
+- `root=<dir>`: Optional root directory to serve, defaults to the current directory.
+- `404=<file>`: Optional custom 404 page (must be inside the root directory).
 - `no-cache=true`: Adds no-cache headers (`Cache-Control`, `Pragma`, `Expires`).
 
 ## Examples
@@ -48,6 +49,9 @@ npx bns
 
 # Serve on port 8080
 npx bns port=8080
+
+# Serve a specific directory
+npx bns root=./public
 
 # Use a custom 404 page
 npx bns port=8080 404=notfound.html

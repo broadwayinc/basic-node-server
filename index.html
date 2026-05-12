@@ -1,50 +1,106 @@
 <!DOCTYPE html>
+<main>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
 
-<h1>Basic Node Server</h1>
+        h1 {
+            color: #333;
+        }
 
-<p>
-    Basic node server for everyone.
-    <br>
-    Basic node server simply hosts and serves files from the current project directory through HTTP.
-    <br>
-    If no path is given, it will serve the index.html file.
-</p>
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
 
-<h2>How to use</h2>
-<pre>
-node bns [port] 404=[404 file] no-cache=[true]
-</pre>
-<p>
-    The [port] argument is optional. If no port is given, it will default to 3000.
-    <br>
-    For example, if you want to serve the current directory on port 8080, you would run:
-</p>
-<pre>
-node bns 8080
-</pre>
-<p>
-    The 404=[404 file] argument is optional. If file location is given, it will respond the file on 404.
-    <br>
-    For example, if you want your 404 page to be 404.html on port 8080, you would run:
-</p>
-<pre>
-node bns 8080 404=404.html
-</pre>
-<p>
-    The no-cache=[true] argument is optional. If no-cache option is given, it will respond with no-cache headers.
-    <br>
-    For example, if you want to prevent your page from being cached, you would run:
-</p>
-<pre>
-node bns no-cache=true
-</pre>
-<h2>NPM</h2>
-<pre>
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        main {
+            max-width: 800px;
+            margin: auto;
+        }
+    </style>
+    <h1>Basic Node Server</h1>
+
+    <p>
+        A small static file server for local hosting and quick testing.
+        <br>
+        It serves files from your current working directory (or a configured root) over HTTP.
+        <br>
+        If the request path is <code>/</code> (or ends with <code>/</code>), it serves <code>index.html</code>.
+        <br>
+        It only serves files inside the configured root directory and supports conditional caching via
+        <code>ETag</code> and <code>Last-Modified</code> (<code>304 Not Modified</code>).
+    </p>
+
+    <h2>Installation</h2>
+    <pre>
 npm install basic-node-server
 </pre>
-<p>
-    Then, you can run it from your project directory:
-</p>
-<pre>
-npx bns [port] 404=[404 file] no-cache=[true]
+
+    <h2>Quick Start</h2>
+    <pre>
+npx bns
 </pre>
+    <p>Default port is <code>3000</code>.</p>
+
+    <h2>Usage</h2>
+    <pre>
+npx bns [port=&lt;number&gt;] [root=&lt;dir&gt;] [404=&lt;file&gt;] [no-cache=true]
+</pre>
+    <p>Show CLI help:</p>
+    <pre>
+npx bns --help
+</pre>
+
+    <h2>Options</h2>
+    <ul>
+        <li><code>port=&lt;number&gt;</code>: Optional port number (<code>1-65535</code>), defaults to
+            <code>3000</code>.</li>
+        <li><code>root=&lt;dir&gt;</code>: Optional root directory to serve, defaults to the current directory.</li>
+        <li><code>404=&lt;file&gt;</code>: Optional custom 404 page (must be inside the root directory).</li>
+        <li><code>no-cache=true</code>: Adds no-cache headers (<code>Cache-Control</code>, <code>Pragma</code>,
+            <code>Expires</code>).</li>
+        <li><code>-h</code>, <code>--help</code>: Show CLI help and exit.</li>
+    </ul>
+
+    <h2>Examples</h2>
+    <pre>
+# Serve current directory on port 3000
+npx bns
+
+# Serve on port 8080
+npx bns port=8080
+
+# Serve a specific directory
+npx bns root=./public
+
+# Use a custom 404 page
+npx bns port=8080 404=notfound.html
+
+# Disable caching headers
+npx bns no-cache=true port=8080
+
+# Custom 404 + no-cache
+npx bns 404=notfound.html no-cache=true port=8080
+</pre>
+
+    <h2>Request Behavior</h2>
+    <ul>
+        <li>Supported methods: <code>GET</code>, <code>HEAD</code></li>
+        <li>Unsupported methods return <code>405 Method Not Allowed</code></li>
+        <li>Missing files return <code>404</code> (or the custom 404 file if configured)</li>
+    </ul>
+</main>

@@ -3,7 +3,6 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const rootDir = process.cwd();
 const contentTypes = require('./mime.json');
 
 const args = process.argv.slice(2);
@@ -11,20 +10,22 @@ const args = process.argv.slice(2);
 function printHelp() {
     console.log('Basic Node Server');
     console.log('Usage:');
-    console.log('- npx bns [port=<number>] [404=<file>] [no-cache=true]');
+    console.log('- npx bns [port=<number>] [root=<dir>] [404=<file>] [no-cache=true]');
     console.log('');
     console.log('Options:');
     console.log('- port=<number>: Optional port number (1-65535), defaults to 3000');
-    console.log('- 404=<file>: Optional custom 404 file path (inside current directory)');
+    console.log('- root=<dir>: Optional root directory to serve, defaults to current directory');
+    console.log('- 404=<file>: Optional custom 404 file path (inside root directory)');
     console.log('- no-cache=true: Optional no-cache response headers');
     console.log('- -h, --help: Show this help and exit');
     console.log('');
     console.log('Examples:');
     console.log('- npx bns');
     console.log('- npx bns port=8080');
+    console.log('- npx bns root=./public');
     console.log('- npx bns 404=notfound.html port=8080');
     console.log('- npx bns no-cache=true port=8080');
-    console.log('- npx bns 404=notfound.html no-cache=true port=8080');
+    console.log('- npx bns 404=notfound.html no-cache=true port=8080 root=./public');
 }
 
 if (args.includes('-h') || args.includes('--help')) {
@@ -35,9 +36,12 @@ if (args.includes('-h') || args.includes('--help')) {
 let port = 3000;
 let notFoundFile = null;
 let noCache = false;
+let rootDirArg = null;
 
 for (const arg of args) {
-    if (arg.startsWith('port=')) {
+    if (arg.startsWith('root=')) {
+        rootDirArg = arg.slice(5);
+    } else if (arg.startsWith('port=')) {
         const rawPort = arg.slice(5);
         const parsedPort = parseInt(rawPort, 10);
         if (/^\d+$/.test(rawPort) && parsedPort >= 1 && parsedPort <= 65535) {
@@ -54,6 +58,21 @@ for (const arg of args) {
         noCache = false;
     } else if (arg.endsWith('.html') || arg.endsWith('.htm') || arg.endsWith('.txt')) {
         notFoundFile = arg;
+    }
+}
+
+let rootDir = process.cwd();
+if (rootDirArg) {
+    const resolvedRoot = path.resolve(process.cwd(), rootDirArg);
+    try {
+        const stat = fs.statSync(resolvedRoot);
+        if (!stat.isDirectory()) {
+            console.log(`Invalid root path (not a directory): ${resolvedRoot}. Falling back to current directory.`);
+        } else {
+            rootDir = resolvedRoot;
+        }
+    } catch (error) {
+        console.log(`Invalid root path (${error.code || error.message}): ${resolvedRoot}. Falling back to current directory.`);
     }
 }
 
@@ -232,6 +251,7 @@ server.listen(port, () => {
     console.log('- Stop server: Ctrl+C');
     console.log('- Help: npx bns --help');
     console.log('- Set port: npx bns port=8080');
+    console.log('- Set root: npx bns root=./public');
     console.log('- Custom 404: npx bns port=8080 404=notfound.html');
     console.log('- Disable caching: npx bns port=8080 no-cache=true');
     console.log('- Custom 404 + no-cache: npx bns port=8080 404=notfound.html no-cache=true');
