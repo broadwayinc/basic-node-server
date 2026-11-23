@@ -33,74 +33,91 @@
         }
     </style>
     <h1>Basic Node Server</h1>
-
     <p>
         A small static file server for local hosting and quick testing.
         <br>
         It serves files from your current working directory (or a configured root) over HTTP.
-        <br>
-        If the request path is <code>/</code> (or ends with <code>/</code>), it serves <code>index.html</code>.
-        <br>
-        It only serves files inside the configured root directory and supports conditional caching via
-        <code>ETag</code> and <code>Last-Modified</code> (<code>304 Not Modified</code>).
     </p>
-
+    <ul>
+        <li>If the request path is a folder (for example <code>/</code>), it serves that folder's <code>index.html</code>.</li>
+        <li>If the folder has no <code>index.html</code>, it shows a file browser of that folder instead.</li>
+        <li><code>--tree</code> always shows the file browser, even when <code>index.html</code> exists.</li>
+        <li>It only serves files inside the configured root directory.</li>
+        <li>It supports conditional caching via <code>ETag</code> and <code>Last-Modified</code> (<code>304 Not Modified</code>).</li>
+    </ul>
     <h2>Installation</h2>
     <pre>
 npm install basic-node-server
 </pre>
-
+    <p>Or install it globally to run <code>bns</code> from anywhere:</p>
+    <pre>
+npm install -g basic-node-server
+</pre>
     <h2>Quick Start</h2>
     <pre>
 npx bns
 </pre>
     <p>Default port is <code>3000</code>.</p>
-
     <h2>Usage</h2>
     <pre>
-npx bns [port=&lt;number&gt;] [root=&lt;dir&gt;] [404=&lt;file&gt;] [no-cache=true]
+bns [--port &lt;number&gt;] [--root &lt;dir&gt;] [--404 &lt;file&gt;] [--no-cache true] [--tree]
 </pre>
+    <p>Every option also takes the <code>--option=value</code> form, for example <code>--port=8080</code>.</p>
     <p>Show CLI help:</p>
     <pre>
-npx bns --help
+bns --help
 </pre>
-
     <h2>Options</h2>
     <ul>
-        <li><code>port=&lt;number&gt;</code>: Optional port number (<code>1-65535</code>), defaults to
-            <code>3000</code>.</li>
-        <li><code>root=&lt;dir&gt;</code>: Optional root directory to serve, defaults to the current directory.</li>
-        <li><code>404=&lt;file&gt;</code>: Optional custom 404 page (must be inside the root directory).</li>
-        <li><code>no-cache=true</code>: Adds no-cache headers (<code>Cache-Control</code>, <code>Pragma</code>,
-            <code>Expires</code>).</li>
-        <li><code>-h</code>, <code>--help</code>: Show CLI help and exit.</li>
+        <li><code>--port &lt;number&gt;</code>: Port number (<code>1-65535</code>), defaults to <code>3000</code>.</li>
+        <li><code>--root &lt;dir&gt;</code>: Directory to serve, defaults to the current directory.</li>
+        <li><code>--404 &lt;file&gt;</code>: Custom 404 page, relative to the root directory and inside it. If you give a folder, its <code>index.html</code> is used.</li>
+        <li><code>--no-cache true</code>: Adds no-cache headers (<code>Cache-Control</code>, <code>Pragma</code>,
+            <code>Expires</code>). <code>--no-cache</code> alone does the same.</li>
+        <li><code>--tree</code>: Always shows the file browser for folders and ignores <code>index.html</code>.</li>
+        <li><code>-h</code>, <code>--help</code>: Shows CLI help and exits.</li>
+        <li><code>-v</code>, <code>--version</code>: Shows the version and exits.</li>
     </ul>
-
+    <p>The older <code>port=8080 root=./public 404=notfound.html no-cache=true</code> form still works.</p>
+    <h2>File Browser</h2>
+    <p>When a folder URL has no <code>index.html</code> (or <code>--tree</code> is on), the server answers with a page listing that folder:</p>
+    <ul>
+        <li>Folders come first, then files, sorted by name.</li>
+        <li>Each row shows the name, size and last modified time.</li>
+        <li>Click a folder to open it, <code>../</code> to go up, or a file to open it.</li>
+        <li>The path at the top links back to every parent folder.</li>
+    </ul>
+    <p>A folder URL without a trailing slash (<code>/docs</code>) redirects to <code>/docs/</code>.</p>
     <h2>Examples</h2>
     <pre>
-# Serve current directory on port 3000
-npx bns
+# Serve the current directory on port 3000
+bns
 
 # Serve on port 8080
-npx bns port=8080
+bns --port 8080
 
 # Serve a specific directory
-npx bns root=./public
+bns --root ./public
 
 # Use a custom 404 page
-npx bns port=8080 404=notfound.html
+bns --port 8080 --404 notfound.html
 
 # Disable caching headers
-npx bns no-cache=true port=8080
+bns --port 8080 --no-cache true
 
-# Custom 404 + no-cache
-npx bns 404=notfound.html no-cache=true port=8080
+# Browse the files even if there is an index.html
+bns --port 8080 --root ./public --tree
+
+# Everything together
+bns --port 8080 --root ./public --404 notfound.html --no-cache true
 </pre>
-
+    <p>Use <code>npx bns ...</code> when the package is installed locally instead of globally.</p>
     <h2>Request Behavior</h2>
     <ul>
         <li>Supported methods: <code>GET</code>, <code>HEAD</code></li>
         <li>Unsupported methods return <code>405 Method Not Allowed</code></li>
         <li>Missing files return <code>404</code> (or the custom 404 file if configured)</li>
+        <li>Paths outside the root directory return <code>400 Bad Request</code></li>
+        <li>Invalid options stop the server with a message saying what is wrong</li>
     </ul>
 </main>
